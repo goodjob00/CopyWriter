@@ -7,7 +7,7 @@ import java.util.Random;
 public class Test {
     public static void main(String[] args) throws IOException {
         Random rnd = new Random(0);
-        byte[] testData = new byte[127 * 3];
+        byte[] testData = new byte[127 * 650000];
         rnd.nextBytes(testData);
         ByteArrayOutputStream dst = new ByteArrayOutputStream();
         CopyUtil.copy(new ByteArrayInputStream(testData), dst);

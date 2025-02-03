@@ -9,6 +9,8 @@ public class CopyUtil {
     public static void copy(final InputStream src, final OutputStream dst) throws IOException {
         // reader-to-writer byte[]-channel
         final BlockingQueue<byte[]> buffer = new ArrayBlockingQueue<>(64);
+        final BlockingQueue<byte[]> bufferBack = new ArrayBlockingQueue<>(64);
+
         // exception-channel from reader/writer threads?
         final AtomicReference<Throwable> ex = new AtomicReference<>();
         final ThreadGroup group = new ThreadGroup("read-write") {
@@ -19,8 +21,12 @@ public class CopyUtil {
         // reader from 'src'
         Thread reader = new Thread(group, () -> {
             try (InputStream src0 = src) {              // 'src0' for auto-closing
+                for (int i = 0; i < 64; i++) {
+                    bufferBack.put(new byte[128]);
+                }
                 while (true) {
-                    byte[] data = new byte[128];        // new data buffer
+                    byte[] data = bufferBack.take();        // new data buffer
+//                    byte[] data = new byte[128];        // new data buffer
                     int count = src.read(data, 1, 127); // read up to 127 bytes
                     data[0] = (byte) count;             // 0-byte is length-field
                     buffer.put(data);                   // send to writer
@@ -37,12 +43,11 @@ public class CopyUtil {
         try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
             while (true) {
                 byte[] data = buffer.take(); // get new data from reader
-                System.out.println(data);
                 if (data[0] == -1) {
                     break;
                 }  // its last data
                 dst.write(data, 1, data[0]); //
-
+                bufferBack.add(data);
             }
         } catch (Exception e) {
             ex.set(e);
