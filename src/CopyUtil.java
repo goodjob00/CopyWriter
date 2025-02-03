@@ -12,7 +12,9 @@ public class CopyUtil {
         // exception-channel from reader/writer threads?
         final AtomicReference<Throwable> ex = new AtomicReference<>();
         final ThreadGroup group = new ThreadGroup("read-write") {
-            public void uncaughtException(Thread t, Throwable e) {ex.set(e);}
+            public void uncaughtException(Thread t, Throwable e) {
+                ex.set(e);
+            }
         };
         // reader from 'src'
         Thread reader = new Thread(group, () -> {
@@ -22,27 +24,31 @@ public class CopyUtil {
                     int count = src.read(data, 1, 127); // read up to 127 bytes
                     data[0] = (byte) count;             // 0-byte is length-field
                     buffer.put(data);                   // send to writer
-                    if (count == -1) {break;}           // src empty
+                    if (count == -1) {
+                        break;
+                    }           // src empty
                 }
-            } catch (Exception e) {group.interrupt();}  // interrupt writer
+            } catch (Exception e) {
+                group.interrupt();
+            }  // interrupt writer
         });
         reader.start();
         // writer to 'dst'
-        Thread writer = new Thread(group, () -> {
-            try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
-                while (true) {
-                    byte[] data = buffer.take(); // get new data from reader
-                    if (data[0] == -1) {break;}  // its last data
-                    dst.write(data, 1, data[0]); // 
-                }
-            } catch (Exception e) {group.interrupt();}  // interrupt writer
-        });
-        writer.start();
-        // wait to complete read/write operations
-        try {
-            reader.join(); // wait for reader
-            writer.join(); // wait for writer
-        } catch (InterruptedException e) {throw new IOException(e);}
-        if (ex.get() != null) {throw new IOException(ex.get());}
+        try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
+            while (true) {
+                byte[] data = buffer.take(); // get new data from reader
+                System.out.println(data);
+                if (data[0] == -1) {
+                    break;
+                }  // its last data
+                dst.write(data, 1, data[0]); //
+
+            }
+        } catch (Exception e) {
+            ex.set(e);
+        }
+        if (ex.get() != null) {
+            throw new IOException(ex.get());
+        }
     }
 }
