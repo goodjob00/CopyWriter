@@ -1,8 +1,12 @@
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Тестовый проект копи райтер");
-        byte[] bt = new byte[321312312];
-        System.out.println(bt.length);
+        int[] check = {
+                2,
+                43,
+                432,
+                43,
+        };
 
+        System.out.println(check[check.length-1]);
     }
 }

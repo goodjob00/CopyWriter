@@ -7,16 +7,29 @@ import java.util.Random;
 public class Test {
     public static void main(String[] args) throws IOException {
         Random rnd = new Random(0);
-        byte[] testData = new byte[64 * 100000];
+        byte[] testData = new byte[64 * 3000];
         rnd.nextBytes(testData);
-        ByteArrayOutputStream dst = new ByteArrayOutputStream();
-        CopyUtil.copy(new ByteArrayInputStream(testData), dst, 3);
-        if (!Arrays.equals(testData, dst.toByteArray())) {
-            throw new AssertionError("Lab decision wrong!");
-        } else {
-            System.out.println(Arrays.equals(testData, dst.toByteArray()));
+        ByteArrayOutputStream[] dst = {
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+        };
+        CopyUtil.copy(new ByteArrayInputStream(testData), dst);
 
-            System.out.println("OK!");
+        for (int i = 0; i < dst.length; i++) {
+            System.out.println(i);
+            if (!Arrays.equals(testData, dst[i].toByteArray())) {
+                throw new AssertionError("Lab decision wrong!");
+            } else {
+                System.out.println(Arrays.equals(testData, dst[i].toByteArray()));
+
+                System.out.println("OK!");
+            }
         }
     }
 }
