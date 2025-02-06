@@ -6,10 +6,13 @@ public class Writer extends Thread {
     public final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(64);
     private OutputStream dst;
     private ThreadGroup group;
-    private Writer previusWriter;
+    private Writer nextWriter;
     private byte[] data;
 
     public byte[] getData() {
+        if (data == null) {
+            return new byte[128];
+        }
         return data;
     }
 
@@ -18,7 +21,7 @@ public class Writer extends Thread {
     }
 
     public void setNextWriter(Writer nextWriter) {
-        this.previusWriter = nextWriter;
+        this.nextWriter = nextWriter;
     }
 
     public Writer(OutputStream dst, ThreadGroup group) {
@@ -30,12 +33,13 @@ public class Writer extends Thread {
     public void run() {
         try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
             while (true) {
-                data = previusWriter.getData(); // get new data from reader
-                System.out.println(data);
+                if (data == null) continue;
+                nextWriter.setData(data);
+                dst.write(data, 1, data[0]); //
                 if (data[0] == -1) {
                     break;
                 }  // its last data
-                dst.write(data, 1, data[0]); //
+                System.out.println(data);
             }
         } catch (Exception e) {
             group.interrupt();

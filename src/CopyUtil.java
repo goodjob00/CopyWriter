@@ -21,15 +21,17 @@ public class CopyUtil {
         // writer to 'dst'
         for (int i = 0; i < dst.length; i++) {
             Writer writer = new Writer(dst[i], group);
-            writer.start();
-
             writers[i] = writer;
+            writers[i].start();
         }
 
-        for (int j = 1; j < writers.length - 1; j++) {
-            writers[j-1] = writers[j];
+        for (int j = 0; j < writers.length - 1; j++) {
+            writers[j].setNextWriter(writers[j+1]);
         }
 
+//        for (int t = 0; t < writers.length; t++) {
+//            writers[t].start();
+//        }
         // reader from 'src'
         Thread reader = new Thread(group, () -> {
             writers[writers.length-1].setData(new byte[128]);
