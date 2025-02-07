@@ -4,6 +4,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class Writer extends Thread {
     public final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(64);
+    public final BlockingQueue<byte[]> queueForReader = new ArrayBlockingQueue<>(1);
     private OutputStream dst;
     private ThreadGroup group;
     private Writer nextWriter;
@@ -14,10 +15,6 @@ public class Writer extends Thread {
             return new byte[128];
         }
         return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
     }
 
     public void setNextWriter(Writer nextWriter) {
@@ -33,15 +30,19 @@ public class Writer extends Thread {
     public void run() {
         try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
             while (true) {
-                if (data == null) continue;
-                nextWriter.setData(data);
-                dst.write(data, 1, data[0]); //
+                byte[] data = queue.take();
+                if (nextWriter == null) {
+                    queueForReader.put(data);
+                } else {
+                    nextWriter.queue.put(data);
+                }
+                dst.write(data, 1, data[0]);
                 if (data[0] == -1) {
                     break;
                 }  // its last data
-                System.out.println(data);
             }
         } catch (Exception e) {
+            System.out.println(e);
             group.interrupt();
         }
     }

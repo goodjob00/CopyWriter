@@ -12,20 +12,24 @@ public class Test {
         ByteArrayOutputStream[] dst = {
                 new ByteArrayOutputStream(),
                 new ByteArrayOutputStream(),
+//                new ByteArrayOutputStream(),
+//                new ByteArrayOutputStream(),
         };
         CopyUtil.copy(new ByteArrayInputStream(testData), dst);
-
         for (int i = 0; i < dst.length; i++) {
             if (!Arrays.equals(testData, dst[i].toByteArray())) {
-                System.out.println(dst[i].toByteArray().length);
-                for (int j = 0; j < testData.length; j++) {
-                    System.out.print(testData[j] + " ");
-                }
-                System.out.println();
+//                System.out.println(testData.length);
+                byte[] dss = dst[i].toByteArray();
+//                for (int j = 0; j < testData.length; j++) {
+//                    if (dss[j] != testData[j]) {
+//                        System.out.println(dss[j] + " " + testData[j]);
+//                    }
+//                }
+//                System.out.println();
+                if (dss.length != testData.length) System.out.println(dss.length + " " + testData.length);
                 throw new AssertionError("Lab decision wrong!");
             } else {
-                System.out.println(Arrays.equals(testData, dst[i].toByteArray()));
-
+                System.out.println(i);
                 System.out.println("OK!");
             }
         }

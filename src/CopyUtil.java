@@ -29,19 +29,16 @@ public class CopyUtil {
             writers[j].setNextWriter(writers[j+1]);
         }
 
-//        for (int t = 0; t < writers.length; t++) {
-//            writers[t].start();
-//        }
         // reader from 'src'
         Thread reader = new Thread(group, () -> {
-            writers[writers.length-1].setData(new byte[128]);
             try (InputStream src0 = src) {              // 'src0' for auto-closing
+                writers[writers.length-1].queue.put(new byte[128]);
                 while (true) {
-                    byte[] data = writers[writers.length - 1].getData();        // new data buffer
+                    byte[] data = writers[writers.length - 1].queueForReader.take();        // new data buffer
                     int count = src.read(data, 1, 127); // read up to 127 bytes
                     data[0] = (byte) count;             // 0-byte is length-field
 
-                    writers[0].setData(data);
+                    writers[0].queue.put(data);
                     if (count == -1) {
                         break;
                     }           // src empty
