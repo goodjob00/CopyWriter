@@ -1,25 +1,13 @@
 import java.io.OutputStream;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class Writer extends Thread {
-    public final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(64);
-    public final BlockingQueue<byte[]> queueForReader = new ArrayBlockingQueue<>(1);
+    public final BlockingQueue<byte[]> localQueue = new ArrayBlockingQueue<>(100);
+    public BlockingQueue<byte[]> nextQueue;
     private OutputStream dst;
     private ThreadGroup group;
-    private Writer nextWriter;
-    private byte[] data;
-
-    public byte[] getData() {
-        if (data == null) {
-            return new byte[128];
-        }
-        return data;
-    }
-
-    public void setNextWriter(Writer nextWriter) {
-        this.nextWriter = nextWriter;
-    }
 
     public Writer(OutputStream dst, ThreadGroup group) {
         this.dst = dst;
@@ -30,16 +18,14 @@ public class Writer extends Thread {
     public void run() {
         try (OutputStream dst0 = dst) {      // 'dst0' for auto-closing
             while (true) {
-                byte[] data = queue.take();
-                if (nextWriter == null) {
-                    queueForReader.put(data);
-                } else {
-                    nextWriter.queue.put(data);
-                }
-                dst.write(data, 1, data[0]);
+                byte[] data = localQueue.take();
+
                 if (data[0] == -1) {
+                    nextQueue.put(data);
                     break;
-                }  // its last data
+                }
+                nextQueue.put(data);
+                dst.write(data, 1, data[0]);
             }
         } catch (Exception e) {
             System.out.println(e);
