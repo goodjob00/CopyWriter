@@ -12,7 +12,7 @@ public class CopyUtil {
     public static void copy(final InputStream src, final OutputStream[] dst) throws IOException {
         final Writer[] writers = new Writer[dst.length];
         // exception-channel from reader/writer threads?
-        final BlockingQueue<byte[]> ringQueue = new ArrayBlockingQueue<>(100);
+        final BlockingQueue<byte[]> ringQueue = new ArrayBlockingQueue<>(200);
         final AtomicReference<Throwable> ex = new AtomicReference<>();
         final ThreadGroup group = new ThreadGroup("read-write") {
             public void uncaughtException(Thread t, Throwable e) {
@@ -36,7 +36,9 @@ public class CopyUtil {
         Thread reader = new Thread(group, () -> {
             try (InputStream src0 = src) {              // 'src0' for auto-closing
                 writers[writers.length-1].nextQueue = ringQueue;
-                ringQueue.put(new byte[128]);
+                for (int i = 0; i < 200; i++) {
+                    ringQueue.put(new byte[128]);
+                }
                 while (true) {
                     byte[] data = ringQueue.take();        // new data buffer
                     int count = src.read(data, 1, 127); // read up to 127 bytes

@@ -7,9 +7,13 @@ import java.util.Random;
 public class Test {
     public static void main(String[] args) throws IOException {
         Random rnd = new Random(0);
-        byte[] testData = new byte[10000];
+        byte[] testData = new byte[65000];
         rnd.nextBytes(testData);
         ByteArrayOutputStream[] dst = {
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
+                new ByteArrayOutputStream(),
                 new ByteArrayOutputStream(),
                 new ByteArrayOutputStream(),
                 new ByteArrayOutputStream(),

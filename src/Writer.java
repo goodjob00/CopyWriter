@@ -4,7 +4,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class Writer extends Thread {
-    public final BlockingQueue<byte[]> localQueue = new ArrayBlockingQueue<>(100);
+    public final BlockingQueue<byte[]> localQueue = new ArrayBlockingQueue<>(200);
     public BlockingQueue<byte[]> nextQueue;
     private OutputStream dst;
     private ThreadGroup group;
